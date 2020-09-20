@@ -1,4 +1,3 @@
-import io
 import os
 import sys
 from pyspark.sql import SparkSession
@@ -17,6 +16,7 @@ VALIDATE_SUBPATH = 'valid'
 
 def process(spark, input_file, target_path):
     spark.conf.set('spark.sql.session.timeZone', 'GMT+3')
+
     df = spark.read.parquet(input_file)
     result_df = get_features(df)
     train_df, test_df, validate_df = split(result_df,
@@ -24,9 +24,9 @@ def process(spark, input_file, target_path):
                                            test_size=TEST_SIZE,
                                            valid_size=VALIDATE_SIZE)
 
-    write_data(train_df, os.path.join(target_path, TRAIN_SUBPATH))
-    write_data(test_df, os.path.join(target_path, TEST_SUBPATH))
-    write_data(validate_df, os.path.join(target_path, VALIDATE_SUBPATH))
+    write_data(train_df, os.path.join(target_path, TRAIN_SUBPATH), partitions=1)
+    write_data(test_df, os.path.join(target_path, TEST_SUBPATH), partitions=1)
+    write_data(validate_df, os.path.join(target_path, VALIDATE_SUBPATH), partitions=1)
 
 
 def split(df, train_size, test_size, valid_size):
@@ -34,10 +34,7 @@ def split(df, train_size, test_size, valid_size):
 
 
 def write_data(df, path_, partitions=1):
-    if os.path.exists(path_):
-        print(f'Выходная папка "{path_}" существует, выберите другое назначение для результата')
-    else:
-        df.coalesce(partitions).write.parquet(path_)
+    df.coalesce(partitions).write.parquet(path_)
 
 
 def get_features(df):
@@ -78,6 +75,7 @@ def main(argv):
     print("Target path: " + target_path)
     spark = _spark_session()
     process(spark, input_path, target_path)
+    sys.exit('Done')
 
 
 def _spark_session():
@@ -87,6 +85,10 @@ def _spark_session():
 if __name__ == "__main__":
     arg = sys.argv[1:]
     if len(arg) != 2:
-        sys.exit("Input and Target path are require.")
+        sys.exit('Input and Target path are required')
+    elif not os.path.exists(arg[0]):
+        sys.exit(f'Input data "{arg[0]}" is not exist, run with correct Input data')
+    elif os.path.exists(arg[1]):
+        sys.exit(f'Target path "{arg[1]}" already exists, run with another Target path')
     else:
         main(arg)
