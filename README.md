@@ -4,12 +4,15 @@ https://academy.stepik.org/big-data
 
 ### [Проект](_Project)
 
+`Click House` `AirFlow` `PySpark` `SparkML` `Hadoop`
+
 #### Содержание курса
 
 1. Введение в Big Data для Data Science
     - Зачем DS знать Big Data?
     - Хранение данных
     - Обработка данных
+    - SQL и ClickHouse
 
 2. Hadoop
     - Архитектура Hadoop
